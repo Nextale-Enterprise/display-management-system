@@ -1,14 +1,14 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useDisplay, useTheme } from 'vuetify'
+import { useDisplay } from 'vuetify'
 import { useCommonStore } from '@/store/common'
 import { ability } from '@/plugins/casl'
+import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
 import foodtaleLogo from '../../images/foodtale.png'
 
 const router = useRouter()
 const route = useRoute()
-const theme = useTheme()
 const display = useDisplay()
 const common = useCommonStore()
 
@@ -29,7 +29,6 @@ const navItems = computed(() => {
 
 const orgLocked = computed(() => !common.isOperator && common.organizations.length <= 1)
 const isMobileNav = computed(() => display.width.value < 1280)
-const isDark = computed(() => theme.global.current.value.dark)
 const pageTitle = computed(() => route.meta.title || '')
 const breadcrumbs = computed(() => route.meta.breadcrumb || [])
 const displayName = computed(() => common.loginUserDetails.name || common.loginUserDetails.username || common.loginUserDetails.email || '')
@@ -50,12 +49,6 @@ function selectOrg(value) {
 function toggleCollapsed() {
   collapsed.value = !collapsed.value
   localStorage.setItem('verticalNavCollapsed', collapsed.value ? '1' : '0')
-}
-
-function toggleTheme() {
-  const next = isDark.value ? 'light' : 'dark'
-  theme.global.name.value = next
-  localStorage.setItem('theme', next)
 }
 
 function onWindowScroll() {
@@ -144,10 +137,7 @@ onUnmounted(() => {
             </VBtn>
           </div>
 
-          <IconBtn aria-label="Toggle color scheme" @click="toggleTheme">
-            <VIcon :icon="isDark ? 'tabler-sun' : 'tabler-moon-stars'" />
-            <VTooltip activator="parent">{{ isDark ? 'Light' : 'Dark' }}</VTooltip>
-          </IconBtn>
+          <ThemeSwitcher class="d-none d-sm-block" />
 
           <VAutocomplete
             v-if="common.panelSelected === 'organization'"

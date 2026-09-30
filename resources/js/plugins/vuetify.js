@@ -8,7 +8,12 @@ import { icons } from './icons'
 import { themes } from './theme'
 
 const storedTheme = localStorage.getItem('theme')
-const defaultTheme = storedTheme === 'dark' || storedTheme === 'light' ? storedTheme : 'light'
+const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+const defaultTheme = storedTheme === 'dark' || storedTheme === 'light'
+  ? storedTheme
+  : storedTheme === 'system' && systemDark
+    ? 'dark'
+    : 'light'
 
 export default createVuetify({
   aliases: {
