@@ -2,8 +2,6 @@
 import { ref } from 'vue'
 import { useToast } from 'vue-toastification'
 import AppTextField from '@/components/AppTextField.vue'
-import loginBanner from '../../images/login-banner.jpg'
-import authMask from '../../images/misc-mask-light.png'
 
 const toast = useToast()
 const username = ref('')
@@ -20,11 +18,9 @@ function submit() {
 <template>
   <VRow no-gutters class="auth-wrapper bg-surface">
     <VCol md="8" class="d-none d-md-flex">
-      <div class="bg-background w-100 me-0">
-        <div class="d-flex align-center justify-center">
-          <VImg :src="loginBanner" class="auth-img-full" cover />
-        </div>
-        <img class="auth-footer-mask" :src="authMask" alt="" height="280" width="100">
+      <div class="auth-hero">
+        <div class="auth-hero__mark">Signage</div>
+        <div class="auth-hero__product">Control plane</div>
       </div>
     </VCol>
     <VCol cols="12" md="4" class="d-flex align-center justify-center">

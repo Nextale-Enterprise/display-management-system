@@ -5,7 +5,6 @@ import { useDisplay } from 'vuetify'
 import { useCommonStore } from '@/store/common'
 import { ability } from '@/plugins/casl'
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
-import foodtaleLogo from '../../images/foodtale.png'
 
 const router = useRouter()
 const route = useRoute()
@@ -89,8 +88,8 @@ onUnmounted(() => {
     >
       <div class="nav-header">
         <RouterLink :to="{ name: common.homeRoute }" class="app-logo app-title-wrapper">
-          <img :src="foodtaleLogo" alt="Foodtale Logo" class="app-logo-img">
-          <h1 v-show="!collapsed || navHovered || isMobileNav" class="app-logo-title">Foodtale</h1>
+          <span class="signage-mark">S</span>
+          <h1 v-show="!collapsed || navHovered || isMobileNav" class="app-logo-title">Signage</h1>
         </RouterLink>
         <IconBtn v-show="!collapsed || navHovered" class="d-none d-lg-inline-flex header-action" @click="toggleCollapsed">
           <VIcon :icon="collapsed ? 'tabler-circle' : 'tabler-circle-dot'" size="20" />

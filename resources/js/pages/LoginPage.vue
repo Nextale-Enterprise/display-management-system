@@ -3,8 +3,6 @@ import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCommonStore } from '@/store/common'
 import AppTextField from '@/components/AppTextField.vue'
-import loginBanner from '../../images/login-banner.jpg'
-import authMask from '../../images/misc-mask-light.png'
 
 const REMEMBER_KEY = 'signage.rememberUsername'
 
@@ -40,18 +38,16 @@ async function submit() {
 <template>
   <VRow no-gutters class="auth-wrapper bg-surface">
     <VCol md="8" class="d-none d-md-flex">
-      <div class="bg-background w-100 me-0">
-        <div class="d-flex align-center justify-center">
-          <VImg :src="loginBanner" class="auth-img-full" cover />
-        </div>
-        <img class="auth-footer-mask" :src="authMask" alt="" height="280" width="100">
+      <div class="auth-hero">
+        <div class="auth-hero__mark">Signage</div>
+        <div class="auth-hero__product">Control plane</div>
       </div>
     </VCol>
     <VCol cols="12" md="4" class="auth-card-v2 d-flex align-center justify-center">
       <VCard flat :max-width="500" class="mt-12 mt-sm-0 pa-4">
         <VCardText>
           <h4 class="text-h4 mb-1">
-            Admin Management System
+            Signage
           </h4>
           <VAlert
             v-if="showError"
