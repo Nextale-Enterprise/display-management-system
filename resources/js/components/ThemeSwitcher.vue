@@ -50,20 +50,23 @@ onUnmounted(() => {
     color="rgba(var(--v-theme-on-surface), var(--v-high-emphasis-opacity))"
   >
     <VIcon :icon="currentIcon" />
-    <VTooltip activator="parent" open-delay="1000" scroll-strategy="close">
-      <span class="text-capitalize">{{ preference }}</span>
-    </VTooltip>
-    <VMenu activator="parent" offset="12px" :width="180">
-      <VList v-model:selected="selectedItem" mandatory>
+    <VMenu
+      activator="parent"
+      location="bottom end"
+      offset="12px"
+      :width="180"
+      :transition="false"
+      content-class="theme-menu"
+    >
+      <VList v-model:selected="selectedItem" mandatory bg-color="surface" class="theme-menu__list">
         <VListItem
           v-for="{ name, icon } in themes"
           :key="name"
           :value="name"
           :prepend-icon="icon"
-          color="primary"
           @click="applyPreference(name)"
         >
-          <VListItemTitle class="text-capitalize">{{ name }}</VListItemTitle>
+          <VListItemTitle class="theme-menu__label">{{ name }}</VListItemTitle>
         </VListItem>
       </VList>
     </VMenu>
