@@ -97,10 +97,10 @@ function statusColor(status) {
       :loading="store.getIsLoading"
       :items="store.getList"
       :headers="[
+        { title: 'Action', key: 'actions', sortable: false, width: 90 },
         { title: 'Name', key: 'name' },
         { title: 'Type', key: 'type' },
         { title: 'Status', key: 'status' },
-        { title: 'Action', key: 'actions', sortable: false, width: 90 },
       ]"
     >
       <template #item.status="{ item }">

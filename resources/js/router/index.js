@@ -3,7 +3,8 @@ import { useCommonStore } from '@/store/common'
 import { ability } from '@/plugins/casl'
 
 const routes = [
-  { path: '/login', name: 'login', component: () => import('@/pages/LoginPage.vue'), meta: { public: true } },
+  { path: '/login', name: 'login', component: () => import('@/pages/LoginPage.vue'), meta: { public: true, blank: true } },
+  { path: '/forgot-password', name: 'forgot-password', component: () => import('@/pages/ForgotPasswordPage.vue'), meta: { public: true, blank: true } },
   {
     path: '/organizations',
     name: 'organization',

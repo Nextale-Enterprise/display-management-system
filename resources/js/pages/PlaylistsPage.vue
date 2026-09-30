@@ -142,9 +142,9 @@ async function remove(item) {
       :loading="store.getIsLoading"
       :items="store.getList"
       :headers="[
+        { title: 'Action', key: 'actions', sortable: false, width: 160 },
         { title: 'Name', key: 'name' },
         { title: 'Published', key: 'published_generation' },
-        { title: 'Action', key: 'actions', sortable: false, width: 160 },
       ]"
     >
       <template #item.actions="{ item }">

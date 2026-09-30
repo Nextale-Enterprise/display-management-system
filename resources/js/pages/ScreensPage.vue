@@ -117,11 +117,11 @@ function seen(value) {
       :loading="store.getIsLoading"
       :items="store.getList"
       :headers="[
+        { title: 'Action', key: 'actions', sortable: false, width: 160 },
         { title: 'Name', key: 'name' },
         { title: 'Pairing code', key: 'pairing_code' },
         { title: 'Playlist', key: 'playlist_name' },
         { title: 'Last seen', key: 'last_seen_at' },
-        { title: 'Action', key: 'actions', sortable: false, width: 160 },
       ]"
     >
       <template #item.last_seen_at="{ item }">{{ seen(item.last_seen_at) }}</template>

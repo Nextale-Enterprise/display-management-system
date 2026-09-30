@@ -6,7 +6,7 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue'
 
 <template>
   <VApp>
-    <RouterView v-if="$route.name === 'login'" />
+    <RouterView v-if="$route.meta.blank" />
     <DefaultLayout v-else />
     <ConfirmDialog />
   </VApp>

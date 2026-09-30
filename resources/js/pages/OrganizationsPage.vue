@@ -94,7 +94,7 @@ async function remove(item) {
     <AmsDataTable
       :loading="store.getIsLoading"
       :items="store.getList"
-      :headers="[{ title: 'Name', key: 'name' }, { title: 'Action', key: 'actions', sortable: false, width: 120 }]"
+      :headers="[{ title: 'Action', key: 'actions', sortable: false, width: 120 }, { title: 'Name', key: 'name' }]"
     >
       <template #item.actions="{ item }">
         <div class="d-flex gap-1">

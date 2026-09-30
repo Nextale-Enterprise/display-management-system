@@ -12,7 +12,8 @@ const model = defineModel({ type: String, default: '' })
   <div class="app-text-field flex-grow-1">
     <VLabel
       v-if="label"
-      class="mb-1 text-body-2"
+      class="mb-1 text-body-2 text-wrap"
+      style="line-height: 15px;"
       :text="label"
     />
     <VTextField v-model="model" v-bind="$attrs" />

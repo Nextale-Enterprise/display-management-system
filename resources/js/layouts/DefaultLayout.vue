@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useDisplay, useTheme } from 'vuetify'
 import { useCommonStore } from '@/store/common'
 import { ability } from '@/plugins/casl'
+import foodtaleLogo from '../../images/foodtale.png'
 
 const router = useRouter()
 const route = useRoute()
@@ -94,12 +95,11 @@ onUnmounted(() => {
       @mouseleave="navHovered = false"
     >
       <div class="nav-header">
-        <RouterLink :to="{ name: common.homeRoute }" class="app-logo">
-          <span class="brand-mark">F</span>
-          <span class="brand-wordmark">Foodtale</span>
-          <span class="app-logo-title">Signage</span>
+        <RouterLink :to="{ name: common.homeRoute }" class="app-logo app-title-wrapper">
+          <img :src="foodtaleLogo" alt="Foodtale Logo" class="app-logo-img">
+          <h1 v-show="!collapsed || navHovered || isMobileNav" class="app-logo-title">Foodtale</h1>
         </RouterLink>
-        <IconBtn class="d-none d-lg-inline-flex" @click="toggleCollapsed">
+        <IconBtn v-show="!collapsed || navHovered" class="d-none d-lg-inline-flex header-action" @click="toggleCollapsed">
           <VIcon :icon="collapsed ? 'tabler-circle' : 'tabler-circle-dot'" size="20" />
         </IconBtn>
         <IconBtn class="d-lg-none" @click="overlayOpen = false">
