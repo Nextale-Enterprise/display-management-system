@@ -1,0 +1,79 @@
+// Foodtale AMS loads these through Vite's Vuetify style config.
+// theme.js still contains the Vuexy purple; the running app overrides primary to #d20102.
+@forward 'vuetify/settings' with (
+  $body-font-family: ('Public Sans', sans-serif, -apple-system, blinkmacsystemfont, 'Segoe UI', roboto, 'Helvetica Neue', arial, sans-serif),
+  $border-radius-root: 6px,
+  $rounded: (
+    'sm': 4px,
+    null: 6px,
+    'lg': 8px,
+  ),
+  $typography: (
+    'h1': (
+      'size': 2.875rem,
+      'weight': 500,
+      'line-height': 4.25rem,
+      'letter-spacing': normal,
+    ),
+    'h2': (
+      'size': 2.375rem,
+      'weight': 500,
+      'line-height': 3.5rem,
+      'letter-spacing': normal,
+    ),
+    'h3': (
+      'size': 1.75rem,
+      'weight': 500,
+      'line-height': 2.625rem,
+    ),
+    'h4': (
+      'size': 1.5rem,
+      'weight': 500,
+      'line-height': 2.375rem,
+      'letter-spacing': normal,
+    ),
+    'h5': (
+      'size': 1.125rem,
+      'weight': 500,
+      'line-height': 1.75rem,
+    ),
+    'h6': (
+      'size': 0.9375rem,
+      'line-height': 1.375rem,
+      'letter-spacing': normal,
+    ),
+    'body-1': (
+      'size': 0.9375rem,
+      'line-height': 1.375rem,
+      'letter-spacing': normal,
+    ),
+    'body-2': (
+      'size': 0.8125rem,
+      'line-height': 1.25rem,
+      'letter-spacing': normal,
+    ),
+    'subtitle-1': (
+      'size': 0.9375rem,
+      'weight': 400,
+      'line-height': 1.375rem,
+    ),
+    'subtitle-2': (
+      'size': 0.8125rem,
+      'weight': 400,
+      'line-height': 1.25rem,
+      'letter-spacing': normal,
+    ),
+    'button': (
+      'size': 0.9375rem,
+      'weight': 500,
+      'line-height': 1.125rem,
+      'letter-spacing': 0.0269rem,
+      'text-transform': capitalize,
+    ),
+    'caption': (
+      'size': 0.8125rem,
+      'line-height': 1.125rem,
+      'letter-spacing': 0.025rem,
+    ),
+  ),
+);

@@ -2,7 +2,8 @@
 defineProps({
   addLabel: { type: String, required: true },
   filterLabel: { type: String, default: 'Name:' },
-  filterPlaceholder: { type: String, default: 'Enter name' },
+  filterPlaceholder: { type: String, default: '' },
+  loading: { type: Boolean, default: false },
 })
 
 const filter = defineModel('filter', { type: String, default: '' })
@@ -10,39 +11,64 @@ const emit = defineEmits(['submit', 'reset', 'add'])
 </script>
 
 <template>
-  <v-row>
-    <v-col cols="12">
-      <v-card title="Filter">
-        <v-card-item>
-          <v-row>
-            <v-col md="4">
+  <VRow>
+    <VCol cols="12">
+      <VCard title="Filter" elevation="6">
+        <VCardItem class="custom-search">
+          <VRow>
+            <VCol cols="12" sm="4" md="4">
               <label>{{ filterLabel }}</label>
-              <v-text-field v-model="filter" :placeholder="filterPlaceholder" hide-details />
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col cols="12">
-              <div class="d-flex justify-end">
-                <v-btn variant="elevated" class="me-4" @click="emit('submit')">Submit</v-btn>
-                <v-btn variant="outlined" @click="emit('reset')">Reset</v-btn>
-              </div>
-            </v-col>
-          </v-row>
-        </v-card-item>
-      </v-card>
+              <VTextField
+                v-model="filter"
+                :placeholder="filterPlaceholder"
+                @keyup.enter="emit('submit')"
+              />
+            </VCol>
+          </VRow>
+        </VCardItem>
+        <VCardActions class="pb-5 pr-6">
+          <VSpacer />
+          <VBtn
+            variant="elevated"
+            class="button-class"
+            width="96"
+            :disabled="loading"
+            @click="emit('submit')"
+          >
+            Submit
+          </VBtn>
+          <VBtn
+            variant="outlined"
+            class="button-class"
+            width="96"
+            :disabled="loading"
+            @click="emit('reset')"
+          >
+            Reset
+          </VBtn>
+          <VProgressCircular
+            v-if="loading"
+            class="ms-1"
+            color="primary"
+            size="22"
+            width="2"
+            indeterminate
+          />
+        </VCardActions>
+      </VCard>
 
-      <v-card class="mt-4">
-        <v-card-item>
-          <v-row>
-            <v-col class="d-flex justify-end mb-4" cols="12">
-              <v-btn variant="elevated" color="primary" @click="emit('add')">{{ addLabel }}</v-btn>
-            </v-col>
-          </v-row>
+      <VCard elevation="6">
+        <VCardItem>
+          <VRow>
+            <VCol class="d-flex justify-end mb-1" cols="12">
+              <VBtn color="primary" @click="emit('add')">{{ addLabel }}</VBtn>
+            </VCol>
+          </VRow>
           <slot />
-        </v-card-item>
-      </v-card>
+        </VCardItem>
+      </VCard>
 
       <slot name="dialog" />
-    </v-col>
-  </v-row>
+    </VCol>
+  </VRow>
 </template>

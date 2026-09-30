@@ -1,14 +1,19 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useField, useForm } from 'vee-validate'
+import { useToast } from 'vue-toastification'
 import draggable from 'vuedraggable'
 import * as yup from 'yup'
 import { useMediaStore } from '@/store/media'
 import { usePlaylistStore } from '@/store/playlist'
+import { confirm } from '@/plugins/confirm'
+import { errorText } from '@/utils/feedback'
 import AmsListPage from '@/components/AmsListPage.vue'
+import AmsDataTable from '@/components/AmsDataTable.vue'
 
 const store = usePlaylistStore()
 const media = useMediaStore()
+const toast = useToast()
 const showModal = ref(false)
 const editing = ref(null)
 const filterName = ref('')
@@ -66,10 +71,12 @@ function addItem() {
 
 const submit = handleSubmit(async (values) => {
   formError.value = ''
+  const wasEditing = Boolean(editing.value)
   try {
     if (!editing.value) {
       await store.create({ name: values.name })
       showModal.value = false
+      toast.success('Playlist created')
       return
     }
     await store.update({ id: editing.value.id, name: values.name })
@@ -78,17 +85,18 @@ const submit = handleSubmit(async (values) => {
       duration_ms: Number(item.duration_ms),
     })))
     showModal.value = false
+    toast.success(wasEditing ? 'Playlist updated' : 'Playlist created')
   } catch (error) {
-    formError.value = error?.data?.message || 'Could not save the playlist.'
+    formError.value = errorText(error, 'Could not save the playlist.')
   }
 })
 
 async function publish(item) {
-  formError.value = ''
   try {
     await store.publish(item.id)
+    toast.success('Playlist published')
   } catch (error) {
-    formError.value = error?.data?.message || 'Could not publish.'
+    toast.error(errorText(error, 'Could not publish.'))
   }
 }
 
@@ -102,6 +110,22 @@ async function resetFilter() {
   store.query = []
   await store.refreshList()
 }
+
+async function remove(item) {
+  const accepted = await confirm({
+    title: 'Delete playlist',
+    text: `Delete ${item.name}?`,
+    confirmText: 'Delete',
+    confirmColor: 'error',
+  })
+  if (!accepted) return
+  try {
+    await store.remove(item.id)
+    toast.success('Playlist deleted')
+  } catch (error) {
+    toast.error(errorText(error, 'Could not delete the playlist.'))
+  }
+}
 </script>
 
 <template>
@@ -109,64 +133,77 @@ async function resetFilter() {
     v-model:filter="filterName"
     add-label="Add Playlist"
     filter-placeholder="Enter playlist name"
+    :loading="store.getIsLoading"
     @submit="applyFilter"
     @reset="resetFilter"
     @add="openCreate"
   >
-    <v-alert v-if="formError && !showModal" type="error" class="mb-4" :text="formError" />
-    <v-data-table
+    <AmsDataTable
       :loading="store.getIsLoading"
       :items="store.getList"
       :headers="[
         { title: 'Name', key: 'name' },
         { title: 'Published', key: 'published_generation' },
-        { title: '', key: 'actions', sortable: false },
+        { title: 'Action', key: 'actions', sortable: false, width: 160 },
       ]"
     >
       <template #item.actions="{ item }">
-        <v-btn variant="outlined" color="primary" icon="mdi-pencil" size="small" class="me-2" @click="openEdit(item)" />
-        <v-btn variant="outlined" size="small" class="me-2" @click="publish(item)">Publish</v-btn>
-        <v-btn variant="outlined" color="error" icon="mdi-delete" size="small" @click="store.remove(item.id)" />
+        <div class="d-flex gap-1">
+          <IconBtn color="primary" aria-label="Edit" @click="openEdit(item)">
+            <VIcon icon="tabler-pencil" />
+            <VTooltip activator="parent">Edit</VTooltip>
+          </IconBtn>
+          <IconBtn color="primary" aria-label="Publish" @click="publish(item)">
+            <VIcon icon="tabler-send" />
+            <VTooltip activator="parent">Publish</VTooltip>
+          </IconBtn>
+          <IconBtn color="error" aria-label="Delete" @click="remove(item)">
+            <VIcon icon="tabler-trash" />
+            <VTooltip activator="parent">Delete</VTooltip>
+          </IconBtn>
+        </div>
       </template>
-    </v-data-table>
+    </AmsDataTable>
     <template #dialog>
-      <v-dialog v-model="showModal" max-width="600" persistent>
-        <v-card>
-          <v-card-title>{{ editing ? 'Edit Playlist' : 'Add Playlist' }}</v-card-title>
-          <v-card-text>
-            <v-alert v-if="formError" type="error" class="mb-3" :text="formError" />
+      <VDialog v-model="showModal" max-width="720">
+        <VCard>
+          <VCardTitle class="text-h5 pt-6 px-6">{{ editing ? 'Edit Playlist' : 'Add Playlist' }}</VCardTitle>
+          <VCardText>
+            <VAlert v-if="formError" type="error" variant="tonal" class="mb-3" :text="formError" />
             <label>Name:</label>
-            <v-text-field v-model="name" placeholder="Enter playlist name" :error-messages="errors.name" />
+            <VTextField v-model="name" placeholder="Enter playlist name" :error-messages="errors.name" />
             <template v-if="editing">
               <p class="text-body-2 mb-4">Drag and drop to sort the position</p>
               <div class="d-flex mb-3" style="gap: 12px">
-                <v-select v-model="addAssetId" :items="readyMedia" item-title="name" item-value="id" hide-details placeholder="Add media" />
-                <v-btn variant="outlined" @click="addItem">Add</v-btn>
+                <VSelect v-model="addAssetId" :items="readyMedia" item-title="name" item-value="id" hide-details placeholder="Add media" />
+                <VBtn variant="outlined" @click="addItem">Add</VBtn>
               </div>
               <draggable v-model="draftItems" item-key="media_asset_id" handle=".handle">
                 <template #item="{ element, index }">
-                  <v-card class="mb-3" variant="outlined">
-                    <v-card-item>
+                  <VCard class="mb-3" variant="outlined">
+                    <VCardItem>
                       <div class="d-flex align-center" style="gap: 8px">
-                        <v-icon class="handle">mdi-drag</v-icon>
+                        <VIcon class="handle" icon="tabler-grip-vertical" />
                         <span style="min-width: 140px">{{ element.name }}</span>
-                        <v-chip size="small">{{ element.status }}</v-chip>
-                        <v-text-field v-model.number="element.duration_ms" type="number" label="Duration ms" density="compact" hide-details />
-                        <v-btn icon="mdi-close" size="small" variant="text" @click="draftItems.splice(index, 1)" />
+                        <VChip size="small" variant="tonal">{{ element.status }}</VChip>
+                        <VTextField v-model.number="element.duration_ms" type="number" label="Duration ms" density="compact" hide-details />
+                        <IconBtn @click="draftItems.splice(index, 1)">
+                          <VIcon icon="tabler-x" />
+                        </IconBtn>
                       </div>
-                    </v-card-item>
-                  </v-card>
+                    </VCardItem>
+                  </VCard>
                 </template>
               </draggable>
             </template>
-          </v-card-text>
-          <v-card-actions>
-            <v-spacer />
-            <v-btn variant="outlined" @click="showModal = false">Cancel</v-btn>
-            <v-btn variant="elevated" color="primary" @click="submit">{{ editing ? 'Save' : 'Create' }}</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
+          </VCardText>
+          <VCardActions class="px-6 pb-6">
+            <VSpacer />
+            <VBtn variant="outlined" @click="showModal = false">Cancel</VBtn>
+            <VBtn variant="elevated" @click="submit">{{ editing ? 'Save' : 'Create' }}</VBtn>
+          </VCardActions>
+        </VCard>
+      </VDialog>
     </template>
   </AmsListPage>
 </template>

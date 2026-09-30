@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCommonStore } from '@/store/common'
+import AppTextField from '@/components/AppTextField.vue'
 
 const router = useRouter()
 const common = useCommonStore()
@@ -23,51 +24,47 @@ async function submit() {
 </script>
 
 <template>
-  <v-app>
-    <v-main>
-      <v-row no-gutters class="fill-height">
-        <v-col md="8" class="d-none d-md-flex bg-background align-center justify-center">
-          <div class="text-center px-8">
-            <div class="text-h3 text-primary mb-2">Signage</div>
-            <div class="text-body-1 text-medium-emphasis">Control plane</div>
-          </div>
-        </v-col>
-        <v-col cols="12" md="4" class="d-flex align-center justify-center">
-          <v-card flat max-width="500" class="pa-4 w-100">
-            <v-card-text>
-              <h4 class="text-h4 mb-1">Signage</h4>
-              <v-alert
-                v-if="showError"
-                class="mt-4"
-                color="#fbdddd"
-                density="compact"
-                :icon="false"
-                text="Invalid Username or Password"
-              />
-            </v-card-text>
-            <v-card-text>
-              <v-form @submit.prevent="submit">
-                <v-row>
-                  <v-col cols="12">
-                    <v-text-field v-model="username" label="Username" autofocus />
-                  </v-col>
-                  <v-col cols="12">
-                    <v-text-field
-                      v-model="password"
-                      label="Password"
-                      :type="showPassword ? 'text' : 'password'"
-                      :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-                      @click:append-inner="showPassword = !showPassword"
-                      @keyup.enter="submit"
-                    />
-                    <v-btn class="mt-4" block type="submit" color="primary">Login</v-btn>
-                  </v-col>
-                </v-row>
-              </v-form>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-    </v-main>
-  </v-app>
+  <VRow no-gutters class="auth-wrapper">
+    <VCol md="8" class="d-none d-md-flex">
+      <div class="auth-hero">
+        <div class="auth-hero__mark">Foodtale</div>
+        <div class="auth-hero__product">Signage</div>
+      </div>
+    </VCol>
+    <VCol cols="12" md="4" class="auth-card-v2 d-flex align-center justify-center">
+      <VCard flat max-width="500" class="mt-12 mt-sm-0 pa-4 w-100">
+        <VCardText>
+          <h4 class="text-h4 mb-1">Signage</h4>
+          <VAlert
+            v-if="showError"
+            class="auth-error mt-4"
+            color="#fbdddd"
+            density="compact"
+            :icon="false"
+            text="Invalid Username or Password"
+          />
+        </VCardText>
+        <VCardText>
+          <VForm @submit.prevent="submit">
+            <VRow>
+              <VCol cols="12">
+                <AppTextField v-model="username" label="Username" autofocus />
+              </VCol>
+              <VCol cols="12">
+                <AppTextField
+                  v-model="password"
+                  label="Password"
+                  :type="showPassword ? 'text' : 'password'"
+                  :append-inner-icon="showPassword ? 'tabler-eye-off' : 'tabler-eye'"
+                  @click:append-inner="showPassword = !showPassword"
+                  @keyup.enter="submit"
+                />
+                <VBtn class="mt-2" block type="submit">Login</VBtn>
+              </VCol>
+            </VRow>
+          </VForm>
+        </VCardText>
+      </VCard>
+    </VCol>
+  </VRow>
 </template>

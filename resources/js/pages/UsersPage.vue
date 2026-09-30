@@ -1,14 +1,19 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useField, useForm } from 'vee-validate'
+import { useToast } from 'vue-toastification'
 import * as yup from 'yup'
 import { useUserStore } from '@/store/user'
 import { useCommonStore } from '@/store/common'
 import { $api } from '@/utils/api'
+import { confirm } from '@/plugins/confirm'
+import { errorText } from '@/utils/feedback'
 import AmsListPage from '@/components/AmsListPage.vue'
+import AmsDataTable from '@/components/AmsDataTable.vue'
 
 const store = useUserStore()
 const common = useCommonStore()
+const toast = useToast()
 const showModal = ref(false)
 const editingId = ref(null)
 const filterName = ref('')
@@ -85,8 +90,9 @@ const submit = handleSubmit(async (values) => {
     if (editingId.value) await store.update({ id: editingId.value, ...payload })
     else await store.create(payload)
     showModal.value = false
+    toast.success(editingId.value ? 'User updated' : 'User created')
   } catch (error) {
-    formError.value = error?.data?.message || 'Could not save the user.'
+    formError.value = errorText(error, 'Could not save the user.')
   }
 })
 
@@ -102,8 +108,19 @@ async function resetFilter() {
 }
 
 async function remove(item) {
-  if (!confirm(`Delete ${item.email}?`)) return
-  await store.remove(item.id)
+  const accepted = await confirm({
+    title: 'Delete user',
+    text: `Delete ${item.email}?`,
+    confirmText: 'Delete',
+    confirmColor: 'error',
+  })
+  if (!accepted) return
+  try {
+    await store.remove(item.id)
+    toast.success('User deleted')
+  } catch (error) {
+    toast.error(errorText(error, 'Could not delete the user.'))
+  }
 }
 </script>
 
@@ -113,51 +130,60 @@ async function remove(item) {
     add-label="Add User"
     filter-label="Name:"
     filter-placeholder="Enter user name"
+    :loading="store.getIsLoading"
     @submit="applyFilter"
     @reset="resetFilter"
     @add="openCreate"
   >
-    <v-data-table
+    <AmsDataTable
       :loading="store.getIsLoading"
       :items="store.getList"
       :headers="[
         { title: 'Name', key: 'name' },
         { title: 'Email', key: 'email' },
         { title: 'Role', key: 'role' },
-        { title: '', key: 'actions', sortable: false },
+        { title: 'Action', key: 'actions', sortable: false, width: 120 },
       ]"
     >
       <template #item.actions="{ item }">
-        <v-btn variant="outlined" color="primary" icon="mdi-pencil" size="small" class="me-2" @click="openEdit(item)" />
-        <v-btn variant="outlined" color="error" icon="mdi-delete" size="small" :disabled="item.id === common.loginUserDetails.id" @click="remove(item)" />
+        <div class="d-flex gap-1">
+          <IconBtn color="primary" aria-label="Edit" @click="openEdit(item)">
+            <VIcon icon="tabler-pencil" />
+            <VTooltip activator="parent">Edit</VTooltip>
+          </IconBtn>
+          <IconBtn color="error" aria-label="Delete" :disabled="item.id === common.loginUserDetails.id" @click="remove(item)">
+            <VIcon icon="tabler-trash" />
+            <VTooltip activator="parent">Delete</VTooltip>
+          </IconBtn>
+        </div>
       </template>
-    </v-data-table>
+    </AmsDataTable>
     <template #dialog>
-      <v-dialog v-model="showModal" max-width="600" persistent>
-        <v-card>
-          <v-card-title>{{ editingId ? 'Edit User' : 'Add User' }}</v-card-title>
-          <v-card-text>
-            <v-alert v-if="formError" type="error" class="mb-3" :text="formError" />
+      <VDialog v-model="showModal">
+        <VCard>
+          <VCardTitle class="text-h5 pt-6 px-6">{{ editingId ? 'Edit User' : 'Add User' }}</VCardTitle>
+          <VCardText>
+            <VAlert v-if="formError" type="error" variant="tonal" class="mb-3" :text="formError" />
             <label>Name:</label>
-            <v-text-field v-model="name" placeholder="Enter name" :error-messages="errors.name" />
+            <VTextField v-model="name" placeholder="Enter name" :error-messages="errors.name" />
             <label>Email:</label>
-            <v-text-field v-model="email" placeholder="Enter email" :error-messages="errors.email" />
+            <VTextField v-model="email" placeholder="Enter email" :error-messages="errors.email" />
             <label>Password:</label>
-            <v-text-field v-model="password" type="password" :error-messages="errors.password" />
+            <VTextField v-model="password" type="password" :error-messages="errors.password" />
             <label>Role:</label>
-            <v-select v-model="role" :items="['operator', 'merchant']" :error-messages="errors.role" />
+            <VSelect v-model="role" :items="['operator', 'merchant']" :error-messages="errors.role" />
             <template v-if="role === 'merchant'">
               <label>Organizations:</label>
-              <v-select v-model="organizationIds" :items="orgItems" item-title="name" item-value="id" multiple chips />
+              <VSelect v-model="organizationIds" :items="orgItems" item-title="name" item-value="id" multiple chips />
             </template>
-          </v-card-text>
-          <v-card-actions>
-            <v-spacer />
-            <v-btn variant="outlined" @click="showModal = false">Cancel</v-btn>
-            <v-btn variant="elevated" color="primary" @click="submit">{{ editingId ? 'Save' : 'Create' }}</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
+          </VCardText>
+          <VCardActions class="px-6 pb-6">
+            <VSpacer />
+            <VBtn variant="outlined" @click="showModal = false">Cancel</VBtn>
+            <VBtn variant="elevated" @click="submit">{{ editingId ? 'Save' : 'Create' }}</VBtn>
+          </VCardActions>
+        </VCard>
+      </VDialog>
     </template>
   </AmsListPage>
 </template>

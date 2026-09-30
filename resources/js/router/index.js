@@ -4,11 +4,61 @@ import { ability } from '@/plugins/casl'
 
 const routes = [
   { path: '/login', name: 'login', component: () => import('@/pages/LoginPage.vue'), meta: { public: true } },
-  { path: '/organizations', name: 'organization', component: () => import('@/pages/OrganizationsPage.vue'), meta: { action: 'manage', subject: 'organization' } },
-  { path: '/users', name: 'user', component: () => import('@/pages/UsersPage.vue'), meta: { action: 'manage', subject: 'user' } },
-  { path: '/screens', name: 'screen', component: () => import('@/pages/ScreensPage.vue'), meta: { action: 'manage', subject: 'screen' } },
-  { path: '/media', name: 'media', component: () => import('@/pages/MediaPage.vue'), meta: { action: 'manage', subject: 'media' } },
-  { path: '/playlists', name: 'playlist', component: () => import('@/pages/PlaylistsPage.vue'), meta: { action: 'manage', subject: 'playlist' } },
+  {
+    path: '/organizations',
+    name: 'organization',
+    component: () => import('@/pages/OrganizationsPage.vue'),
+    meta: {
+      action: 'manage',
+      subject: 'organization',
+      title: 'Organizations',
+      breadcrumb: [{ title: 'Organizations', disabled: true }],
+    },
+  },
+  {
+    path: '/users',
+    name: 'user',
+    component: () => import('@/pages/UsersPage.vue'),
+    meta: {
+      action: 'manage',
+      subject: 'user',
+      title: 'Users',
+      breadcrumb: [{ title: 'Users', disabled: true }],
+    },
+  },
+  {
+    path: '/screens',
+    name: 'screen',
+    component: () => import('@/pages/ScreensPage.vue'),
+    meta: {
+      action: 'manage',
+      subject: 'screen',
+      title: 'Screens',
+      breadcrumb: [{ title: 'Screens', disabled: true }],
+    },
+  },
+  {
+    path: '/media',
+    name: 'media',
+    component: () => import('@/pages/MediaPage.vue'),
+    meta: {
+      action: 'manage',
+      subject: 'media',
+      title: 'Media',
+      breadcrumb: [{ title: 'Media', disabled: true }],
+    },
+  },
+  {
+    path: '/playlists',
+    name: 'playlist',
+    component: () => import('@/pages/PlaylistsPage.vue'),
+    meta: {
+      action: 'manage',
+      subject: 'playlist',
+      title: 'Playlists',
+      breadcrumb: [{ title: 'Playlists', disabled: true }],
+    },
+  },
   { path: '/', redirect: '/screens' },
 ]
 
