@@ -12,15 +12,16 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(RoleSeeder::class);
 
-        $operatorRoleId = Role::query()->where('slug', 'operator')->value('id');
+        $adminRoleId = Role::query()->where('slug', 'admin')->value('id');
+        $superadminRoleId = Role::query()->where('slug', 'superadmin')->value('id');
 
         User::query()->updateOrCreate(
-            ['email' => 'operator@signage.test'],
+            ['email' => 'admin@signage.test'],
             [
-                'name' => 'Operator',
-                'username' => 'operator',
-                'password' => 'password',
-                'role_id' => $operatorRoleId,
+                'name' => 'Admin',
+                'username' => 'admin',
+                'password' => 'asd123',
+                'role_id' => $adminRoleId,
             ],
         );
 
@@ -30,7 +31,7 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Superadmin',
                 'email' => 'superadmin@signage.test',
                 'password' => 'asd123',
-                'role_id' => $operatorRoleId,
+                'role_id' => $superadminRoleId,
             ],
         );
     }

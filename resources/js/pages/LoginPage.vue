@@ -28,7 +28,12 @@ async function submit() {
     if (rememberMe.value) localStorage.setItem(REMEMBER_KEY, username.value)
     else localStorage.removeItem(REMEMBER_KEY)
     await common.fetchUser()
-    router.push({ name: common.homeRoute })
+    const next = router.currentRoute.value.query.next
+    if (typeof next === 'string' && next.startsWith('/') && !next.startsWith('//')) {
+      router.push(next)
+    } else {
+      router.push({ name: common.homeRoute })
+    }
   } catch {
     showError.value = true
   }

@@ -22,19 +22,32 @@ const organizations = ref([])
 
 const schema = yup.object({
   name: yup.string().trim().required('Name cannot be empty'),
-  email: yup.string().trim().email('Email is invalid').required('Email cannot be empty'),
+  username: yup.string().trim().required('Username cannot be empty'),
   password: yup.string().nullable(),
+  password_confirmation: yup.string()
+    .nullable()
+    .oneOf([yup.ref('password')], 'Password confirmation does not match'),
   role: yup.string().required('Role cannot be empty'),
+})
+
+const blankUser = () => ({
+  name: '',
+  username: '',
+  password: 'asd123',
+  password_confirmation: 'asd123',
+  role: 'merchant',
+  organization_ids: [],
 })
 
 const creating = ref(true)
 const { handleSubmit, errors, resetForm } = useForm({
   validationSchema: schema,
-  initialValues: { name: '', email: '', password: '', role: 'merchant', organization_ids: [] },
+  initialValues: blankUser(),
 })
 const { value: name } = useField('name')
-const { value: email } = useField('email')
+const { value: username } = useField('username')
 const { value: password } = useField('password')
+const { value: passwordConfirmation } = useField('password_confirmation')
 const { value: role } = useField('role')
 const { value: organizationIds } = useField('organization_ids')
 
@@ -49,7 +62,7 @@ function openCreate() {
   creating.value = true
   editingId.value = null
   formError.value = ''
-  resetForm({ values: { name: '', email: '', password: '', role: 'merchant', organization_ids: [] } })
+  resetForm({ values: blankUser() })
   showModal.value = true
 }
 
@@ -60,8 +73,9 @@ function openEdit(item) {
   resetForm({
     values: {
       name: item.name,
-      email: item.email,
-      password: '',
+      username: item.username,
+      password: 'asd123',
+      password_confirmation: 'asd123',
       role: item.role,
       organization_ids: (item.organizations || []).map(org => org.id),
     },
@@ -71,17 +85,10 @@ function openEdit(item) {
 
 const submit = handleSubmit(async (values) => {
   formError.value = ''
-  if (creating.value && !values.password) {
-    formError.value = 'Password cannot be empty.'
-    return
-  }
-  if (values.password && values.password.length < 8) {
-    formError.value = 'At least 8 characters.'
-    return
-  }
   const payload = {
     name: values.name,
-    email: values.email,
+    username: values.username,
+    password: values.password || 'asd123',
     role: values.role,
     organization_ids: values.role === 'merchant' ? (values.organization_ids || []) : [],
   }
@@ -110,7 +117,7 @@ async function resetFilter() {
 async function remove(item) {
   const accepted = await confirm({
     title: 'Delete user',
-    text: `Delete ${item.email}?`,
+    text: `Delete ${item.username || item.name}?`,
     confirmText: 'Delete',
     confirmColor: 'error',
   })
@@ -141,17 +148,17 @@ async function remove(item) {
       :headers="[
         { title: 'Action', key: 'actions', sortable: false, width: 120 },
         { title: 'Name', key: 'name' },
-        { title: 'Email', key: 'email' },
+        { title: 'Username', key: 'username' },
         { title: 'Role', key: 'role' },
       ]"
     >
       <template #item.actions="{ item }">
         <div class="d-flex gap-1">
-          <IconBtn color="primary" aria-label="Edit" @click="openEdit(item)">
+          <IconBtn color="primary" aria-label="Edit" :disabled="item.role === 'superadmin'" @click="openEdit(item)">
             <VIcon icon="tabler-pencil" />
             <VTooltip activator="parent">Edit</VTooltip>
           </IconBtn>
-          <IconBtn color="error" aria-label="Delete" :disabled="item.id === common.loginUserDetails.id" @click="remove(item)">
+          <IconBtn color="error" aria-label="Delete" :disabled="item.id === common.loginUserDetails.id || item.role === 'superadmin'" @click="remove(item)">
             <VIcon icon="tabler-trash" />
             <VTooltip activator="parent">Delete</VTooltip>
           </IconBtn>
@@ -163,15 +170,18 @@ async function remove(item) {
         <VCard>
           <VCardTitle class="text-h5 pt-6 px-6">{{ editingId ? 'Edit User' : 'Add User' }}</VCardTitle>
           <VCardText>
+            <p class="text-body-2 text-medium-emphasis mb-4">default password: asd123</p>
             <VAlert v-if="formError" type="error" variant="tonal" class="mb-3" :text="formError" />
             <label>Name:</label>
             <VTextField v-model="name" placeholder="Enter name" :error-messages="errors.name" />
-            <label>Email:</label>
-            <VTextField v-model="email" placeholder="Enter email" :error-messages="errors.email" />
+            <label>Username:</label>
+            <VTextField v-model="username" placeholder="Enter username" :error-messages="errors.username" />
             <label>Password:</label>
             <VTextField v-model="password" type="password" :error-messages="errors.password" />
+            <label>Confirm password:</label>
+            <VTextField v-model="passwordConfirmation" type="password" :error-messages="errors.password_confirmation" />
             <label>Role:</label>
-            <VSelect v-model="role" :items="['operator', 'merchant']" :error-messages="errors.role" />
+            <VSelect v-model="role" :items="['admin', 'merchant']" :error-messages="errors.role" />
             <template v-if="role === 'merchant'">
               <label>Organizations:</label>
               <VSelect v-model="organizationIds" :items="orgItems" item-title="name" item-value="id" multiple chips />

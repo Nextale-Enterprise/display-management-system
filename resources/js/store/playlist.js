@@ -29,12 +29,23 @@ export const usePlaylistStore = defineStore('playlist', {
     async create(params) {
       const response = await $api.raw('/api/playlists', { method: 'POST', body: tenantBody(params) })
       await this.refreshList()
-      return response
+      return response._data
     },
     async update(params) {
       const response = await $api.raw(`/api/playlists/${params.id}`, { method: 'PUT', body: tenantBody(params) })
       await this.refreshList()
       return response
+    },
+    async addFile(id, file) {
+      const formData = new FormData()
+      const chosen = Array.isArray(file) ? file[0] : file
+      formData.append('file', chosen)
+      const scope = scopedQuery()
+      if (scope.organization_id) formData.append('organization_id', scope.organization_id)
+      for (const query of scope['queries[]'] || []) formData.append('queries[]', query)
+      const response = await $api.raw(`/api/playlists/${id}/items`, { method: 'POST', body: formData })
+      await this.refreshList()
+      return response._data
     },
     async saveItems(id, items) {
       const response = await $api.raw(`/api/playlists/${id}/items`, {

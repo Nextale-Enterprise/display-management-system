@@ -67,7 +67,7 @@ class OrganizationScope
         $user = $request->user();
         $requested = self::requestedId($request);
 
-        if ($user->isOperator()) {
+        if ($user->isAdmin()) {
             abort_if($requested === null, 422, 'Select an organization.');
             abort_unless(Organization::query()->whereKey($requested)->exists(), 422, 'Select an organization.');
 

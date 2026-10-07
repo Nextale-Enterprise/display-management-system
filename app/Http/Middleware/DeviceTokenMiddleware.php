@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Screen;
+use App\Models\Device;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,12 +17,12 @@ class DeviceTokenMiddleware
             return response()->json(['status' => 'Authorization Token not found'], 401);
         }
 
-        $screen = Screen::query()->where('device_token', hash('sha256', $token))->first();
-        if (! $screen) {
+        $device = Device::query()->where('device_token', hash('sha256', $token))->first();
+        if (! $device) {
             return response()->json(['status' => 'Authorization Token not found'], 401);
         }
 
-        $request->attributes->set('screen', $screen);
+        $request->attributes->set('device', $device);
 
         return $next($request);
     }

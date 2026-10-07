@@ -1,12 +1,13 @@
 import { defineStore } from 'pinia'
 import { $api } from '@/utils/api'
 import { scopedQuery } from '@/utils/query'
+import { useCommonStore } from '@/store/common'
 
 function tenantBody(params) {
   return { ...params, ...scopedQuery() }
 }
 
-export const useScreenStore = defineStore('screen', {
+export const useBranchStore = defineStore('branch', {
   state: () => ({
     list: [],
     isLoading: false,
@@ -20,29 +21,25 @@ export const useScreenStore = defineStore('screen', {
     async refreshList() {
       this.isLoading = true
       try {
-        const response = await $api.raw('/api/screens', { query: scopedQuery(this.query) })
+        const response = await $api.raw('/api/branches', { query: scopedQuery(this.query) })
         this.list = response._data || []
       } finally {
         this.isLoading = false
       }
     },
     async create(params) {
-      const response = await $api.raw('/api/screens', { method: 'POST', body: tenantBody(params) })
+      const response = await $api.raw('/api/branches', { method: 'POST', body: tenantBody(params) })
       await this.refreshList()
+      await useCommonStore().fetchUser()
       return response
     },
     async update(params) {
-      const response = await $api.raw(`/api/screens/${params.id}`, { method: 'PUT', body: tenantBody(params) })
-      await this.refreshList()
-      return response
-    },
-    async regenerate(id) {
-      const response = await $api.raw(`/api/screens/${id}/pairing-code`, { method: 'POST', body: tenantBody({}) })
+      const response = await $api.raw(`/api/branches/${params.id}`, { method: 'PUT', body: tenantBody(params) })
       await this.refreshList()
       return response
     },
     async remove(id) {
-      const response = await $api.raw(`/api/screens/${id}`, { method: 'DELETE', query: scopedQuery() })
+      const response = await $api.raw(`/api/branches/${id}`, { method: 'DELETE', query: scopedQuery() })
       await this.refreshList()
       return response
     },

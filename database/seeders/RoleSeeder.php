@@ -9,7 +9,8 @@ class RoleSeeder extends Seeder
 {
     public function run(): void
     {
-        Role::query()->updateOrCreate(['slug' => 'operator'], ['name' => 'Operator']);
+        Role::query()->updateOrCreate(['slug' => 'superadmin'], ['name' => 'Superadmin']);
+        Role::query()->updateOrCreate(['slug' => 'admin'], ['name' => 'Admin']);
         Role::query()->updateOrCreate(['slug' => 'merchant'], ['name' => 'Merchant']);
     }
 }

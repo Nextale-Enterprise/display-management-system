@@ -11,6 +11,8 @@ class PlaylistItem extends Model
         'playlist_id',
         'media_asset_id',
         'position',
+        'row_index',
+        'column_index',
         'duration_ms',
     ];
 
@@ -30,6 +32,8 @@ class PlaylistItem extends Model
             'id' => $this->id,
             'media_asset_id' => $this->media_asset_id,
             'position' => $this->position,
+            'row_index' => (int) $this->row_index,
+            'column_index' => (int) $this->column_index,
             'duration_ms' => $this->duration_ms,
             'name' => $this->mediaAsset?->name,
             'type' => $this->mediaAsset?->type,

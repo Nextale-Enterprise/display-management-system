@@ -28,25 +28,47 @@ const routes = [
     },
   },
   {
-    path: '/screens',
-    name: 'screen',
-    component: () => import('@/pages/ScreensPage.vue'),
+    path: '/claim/:code',
+    name: 'claim',
+    component: () => import('@/pages/ClaimPage.vue'),
     meta: {
       action: 'manage',
-      subject: 'screen',
-      title: 'Screens',
-      breadcrumb: [{ title: 'Screens', disabled: true }],
+      subject: 'device',
+      title: 'Scan device',
+      breadcrumb: [{ title: 'Devices', to: '/devices' }, { title: 'Scan device', disabled: true }],
     },
   },
   {
-    path: '/media',
-    name: 'media',
-    component: () => import('@/pages/MediaPage.vue'),
+    path: '/overview',
+    name: 'overview',
+    component: () => import('@/pages/OverviewPage.vue'),
     meta: {
       action: 'manage',
-      subject: 'media',
-      title: 'Media',
-      breadcrumb: [{ title: 'Media', disabled: true }],
+      subject: 'device',
+      title: 'Overview',
+      breadcrumb: [{ title: 'Overview', disabled: true }],
+    },
+  },
+  {
+    path: '/branches',
+    name: 'branch',
+    component: () => import('@/pages/BranchesPage.vue'),
+    meta: {
+      action: 'manage',
+      subject: 'device',
+      title: 'Branches',
+      breadcrumb: [{ title: 'Branches', disabled: true }],
+    },
+  },
+  {
+    path: '/devices',
+    name: 'device',
+    component: () => import('@/pages/DevicesPage.vue'),
+    meta: {
+      action: 'manage',
+      subject: 'device',
+      title: 'Devices',
+      breadcrumb: [{ title: 'Devices', disabled: true }],
     },
   },
   {
@@ -60,7 +82,7 @@ const routes = [
       breadcrumb: [{ title: 'Playlists', disabled: true }],
     },
   },
-  { path: '/', redirect: '/screens' },
+  { path: '/', redirect: '/devices' },
 ]
 
 const router = createRouter({
@@ -70,7 +92,9 @@ const router = createRouter({
 
 router.beforeEach(async (to) => {
   if (to.meta.public) return true
-  if (!localStorage.getItem('accessToken')) return { name: 'login' }
+  if (!localStorage.getItem('accessToken')) {
+    return { name: 'login', query: { next: to.fullPath } }
+  }
 
   const common = useCommonStore()
   if (!common.loginUserDetails.id) {

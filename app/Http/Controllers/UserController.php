@@ -35,8 +35,9 @@ class UserController extends Controller
         $data = $this->validated($request, true);
         $user = User::query()->create([
             'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => $data['password'],
+            'username' => $data['username'],
+            'email' => $this->emailFor($data['username']),
+            'password' => $data['password'] ?? 'asd123',
             'role_id' => $this->roleId($data['role']),
         ]);
         $this->syncOrganizations($user, $data['role'], $data['organization_ids'] ?? []);
@@ -47,10 +48,12 @@ class UserController extends Controller
     public function update(Request $request, User $user): JsonResponse
     {
         $this->authorizeSubject($request, 'user');
+        abort_if($user->isSuperadmin(), 422, 'A superadmin account stays above this form.');
         $data = $this->validated($request, false, $user);
         $user->fill([
             'name' => $data['name'],
-            'email' => $data['email'],
+            'username' => $data['username'],
+            'email' => $this->emailFor($data['username']),
             'role_id' => $this->roleId($data['role']),
         ]);
         if (! empty($data['password'])) {
@@ -65,6 +68,7 @@ class UserController extends Controller
     public function destroy(Request $request, User $user): JsonResponse
     {
         $this->authorizeSubject($request, 'user');
+        abort_if($user->isSuperadmin(), 422, 'A superadmin account stays above this form.');
         abort_if($request->user()->is($user), 422, 'You cannot delete yourself.');
         $user->organizations()->detach();
         $user->delete();
@@ -76,12 +80,17 @@ class UserController extends Controller
     {
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user?->id)],
-            'password' => [$creating ? 'required' : 'nullable', 'string', 'min:8'],
-            'role' => ['required', Rule::in(['operator', 'merchant'])],
+            'username' => ['required', 'string', 'max:255', Rule::unique('users', 'username')->ignore($user?->id)],
+            'password' => ['nullable', 'string', 'min:6'],
+            'role' => ['required', Rule::in(['admin', 'merchant'])],
             'organization_ids' => ['array'],
             'organization_ids.*' => ['integer', 'exists:organizations,id'],
         ]);
+    }
+
+    private function emailFor(string $username): string
+    {
+        return str_contains($username, '@') ? $username : $username.'@signage.test';
     }
 
     private function roleId(string $slug): int
@@ -91,7 +100,7 @@ class UserController extends Controller
 
     private function syncOrganizations(User $user, string $role, array $organizationIds): void
     {
-        if ($role === 'operator') {
+        if ($role === 'admin') {
             $user->organizations()->sync([]);
 
             return;
@@ -106,6 +115,7 @@ class UserController extends Controller
         return [
             'id' => $user->id,
             'name' => $user->name,
+            'username' => $user->username,
             'email' => $user->email,
             'role' => $user->role?->slug,
             'organizations' => $user->organizations->map(fn ($organization) => [

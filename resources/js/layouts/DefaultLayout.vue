@@ -16,8 +16,9 @@ const systemNav = [
   { title: 'Users', to: 'user', subject: 'user', icon: 'tabler-users' },
 ]
 const organizationNav = [
-  { title: 'Screens', to: 'screen', subject: 'screen', icon: 'tabler-device-desktop' },
-  { title: 'Media', to: 'media', subject: 'media', icon: 'tabler-photo' },
+  { title: 'Overview', to: 'overview', subject: 'device', icon: 'tabler-sitemap' },
+  { title: 'Branches', to: 'branch', subject: 'device', icon: 'tabler-building-store' },
+  { title: 'Devices', to: 'device', subject: 'device', icon: 'tabler-device-desktop' },
   { title: 'Playlists', to: 'playlist', subject: 'playlist', icon: 'tabler-playlist' },
 ]
 
@@ -212,7 +213,7 @@ onUnmounted(() => {
           type="info"
           variant="tonal"
           title="Select an organization"
-          text="Organization screens, media, and playlists stay inside the organization you pick."
+          text="Organization devices and playlists stay inside the organization you pick."
         />
         <RouterView v-else />
       </main>

@@ -56,9 +56,14 @@ class User extends Authenticatable implements JWTSubject
         return $this->belongsToMany(Organization::class);
     }
 
-    public function isOperator(): bool
+    public function isSuperadmin(): bool
     {
-        return $this->role?->slug === 'operator';
+        return $this->role?->slug === 'superadmin';
+    }
+
+    public function isAdmin(): bool
+    {
+        return in_array($this->role?->slug, ['admin', 'superadmin'], true);
     }
 
     public function canManage(string $subject): bool
@@ -68,24 +73,28 @@ class User extends Authenticatable implements JWTSubject
 
     public function abilitySubjects(): array
     {
-        if ($this->isOperator()) {
-            return ['organization', 'user', 'screen', 'media', 'playlist'];
+        if ($this->isSuperadmin()) {
+            return ['organization', 'user', 'device', 'playlist'];
         }
 
-        return ['screen', 'media', 'playlist'];
+        if ($this->isAdmin()) {
+            return ['organization', 'device', 'playlist'];
+        }
+
+        return ['device', 'playlist'];
     }
 
     public function panels(): array
     {
-        return $this->isOperator() ? ['system', 'organization'] : ['organization'];
+        return $this->isAdmin() ? ['system', 'organization'] : ['organization'];
     }
 
     public function present(): array
     {
         $this->loadMissing('role', 'organizations');
-        $organizations = $this->isOperator()
-            ? Organization::query()->orderBy('name')->get(['id', 'name'])
-            : $this->organizations;
+        $organizations = $this->isAdmin()
+            ? Organization::query()->withCount(['devices', 'branches'])->orderBy('name')->get()
+            : $this->organizations()->withCount(['devices', 'branches'])->get();
 
         return [
             'id' => $this->id,
@@ -93,10 +102,7 @@ class User extends Authenticatable implements JWTSubject
             'username' => $this->username,
             'email' => $this->email,
             'role' => $this->role?->slug,
-            'organizations' => $organizations->map(fn (Organization $organization) => [
-                'id' => $organization->id,
-                'name' => $organization->name,
-            ])->values(),
+            'organizations' => $organizations->map(fn (Organization $organization) => $organization->present())->values(),
             'abilities' => collect($this->abilitySubjects())->map(fn (string $subject) => [
                 'action' => 'manage',
                 'subject' => $subject,

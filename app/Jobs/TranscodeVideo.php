@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\MediaAsset;
+use App\Models\PlaylistItem;
 use App\Transcode\VideoTranscoder;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -41,6 +42,9 @@ class TranscodeVideo implements ShouldQueue
                 'duration_ms' => $duration,
                 'error' => null,
             ]);
+            PlaylistItem::query()
+                ->where('media_asset_id', $asset->id)
+                ->update(['duration_ms' => $duration]);
         } catch (Throwable $e) {
             $asset->update([
                 'status' => 'failed',

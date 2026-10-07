@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\TranscodeVideo;
 use App\Models\MediaAsset;
 use App\Models\Playlist;
 use App\Models\PlaylistItem;
@@ -57,6 +58,54 @@ class PlaylistController extends Controller
         return response()->json($playlist->fresh()->present());
     }
 
+    public function addItem(Request $request, Playlist $playlist): JsonResponse
+    {
+        $this->authorizeSubject($request, 'playlist');
+        $this->assertSameOrganization($request, $playlist->organization_id);
+        $data = $request->validate([
+            'file' => ['required', 'file', 'max:204800'],
+        ]);
+
+        $extension = strtolower($data['file']->getClientOriginalExtension());
+        $video = in_array($extension, ['mp4', 'webm', 'mov'], true);
+        $image = in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true);
+        abort_unless($video || $image, 422, 'Unsupported file.');
+
+        $name = pathinfo($data['file']->getClientOriginalName(), PATHINFO_FILENAME);
+        $path = $data['file']->store('org/'.$playlist->organization_id.'/media', 'media');
+        $asset = MediaAsset::query()->create([
+            'organization_id' => $playlist->organization_id,
+            'name' => $name !== '' ? $name : 'Media',
+            'type' => $video ? 'video' : 'image',
+            'path' => $path,
+            'status' => $video ? 'processing' : 'ready',
+            'duration_ms' => $video ? null : 10000,
+        ]);
+        if ($video) {
+            TranscodeVideo::dispatch($asset->id);
+        }
+
+        $row = $request->exists('row_index')
+            ? max(0, (int) $request->input('row_index'))
+            : ((int) ($playlist->items()->max('row_index') ?? -1)) + 1;
+        $column = $request->exists('column_index') ? max(0, (int) $request->input('column_index')) : 0;
+        $duration = (int) $request->input('duration_ms', 0);
+        if ($duration < 1000) {
+            $duration = (int) ($playlist->items()->where('column_index', $column)->max('duration_ms') ?: ($asset->duration_ms ?? 10000));
+        }
+        $playlist->items()->where('row_index', $row)->where('column_index', $column)->delete();
+        PlaylistItem::query()->create([
+            'playlist_id' => $playlist->id,
+            'media_asset_id' => $asset->id,
+            'position' => ($row * 1000) + $column,
+            'row_index' => $row,
+            'column_index' => $column,
+            'duration_ms' => $duration,
+        ]);
+
+        return response()->json($playlist->fresh()->present(), 201);
+    }
+
     public function syncItems(Request $request, Playlist $playlist): JsonResponse
     {
         $this->authorizeSubject($request, 'playlist');
@@ -64,6 +113,8 @@ class PlaylistController extends Controller
         $data = $request->validate([
             'items' => ['present', 'array'],
             'items.*.media_asset_id' => ['required', 'integer'],
+            'items.*.row_index' => ['nullable', 'integer', 'min:0'],
+            'items.*.column_index' => ['nullable', 'integer', 'min:0'],
             'items.*.duration_ms' => ['required', 'integer', 'min:1000'],
         ]);
 
@@ -75,13 +126,30 @@ class PlaylistController extends Controller
             ->keyBy('id');
         abort_unless($assets->count() === $ids->unique()->count(), 422, 'Media is not in this organization.');
 
-        DB::transaction(function () use ($playlist, $data) {
+        $placed = [];
+        foreach (array_values($data['items']) as $position => $item) {
+            $row = array_key_exists('row_index', $item) && $item['row_index'] !== null ? (int) $item['row_index'] : $position;
+            $column = array_key_exists('column_index', $item) && $item['column_index'] !== null ? (int) $item['column_index'] : 0;
+            $key = $row.':'.$column;
+            abort_if(isset($placed[$key]), 422, 'Two files cannot share one screen cell.');
+            $placed[$key] = [
+                'media_asset_id' => $item['media_asset_id'],
+                'row_index' => $row,
+                'column_index' => $column,
+                'duration_ms' => $item['duration_ms'],
+                'position' => ($row * 1000) + $column,
+            ];
+        }
+
+        DB::transaction(function () use ($playlist, $placed) {
             $playlist->items()->delete();
-            foreach (array_values($data['items']) as $position => $item) {
+            foreach ($placed as $item) {
                 PlaylistItem::query()->create([
                     'playlist_id' => $playlist->id,
                     'media_asset_id' => $item['media_asset_id'],
-                    'position' => $position,
+                    'position' => $item['position'],
+                    'row_index' => $item['row_index'],
+                    'column_index' => $item['column_index'],
                     'duration_ms' => $item['duration_ms'],
                 ]);
             }
@@ -115,6 +183,8 @@ class PlaylistController extends Controller
                     'publication_id' => $publication->id,
                     'media_asset_id' => $item->media_asset_id,
                     'position' => $item->position,
+                    'row_index' => $item->row_index,
+                    'column_index' => $item->column_index,
                     'duration_ms' => $item->duration_ms,
                     'name' => $item->mediaAsset->name,
                     'type' => $item->mediaAsset->type,

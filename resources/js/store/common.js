@@ -13,7 +13,7 @@ export const useCommonStore = defineStore('common', {
   }),
 
   getters: {
-    isOperator: state => state.loginUserDetails.role === 'operator',
+    isOperator: state => state.loginUserDetails.role === 'admin' || state.loginUserDetails.role === 'superadmin',
     organizations: state => state.loginUserDetails.organizations || [],
     shouldScopeToSelectedOrganization: state =>
       state.panelSelected === PANEL_ORGANIZATION && !!state.organizationSelected,
@@ -21,7 +21,7 @@ export const useCommonStore = defineStore('common', {
       state.panelSelected === PANEL_ORGANIZATION && !state.organizationSelected,
     homeRoute() {
       if (this.isOperator && this.panelSelected !== PANEL_ORGANIZATION) return 'organization'
-      return 'screen'
+      return 'device'
     },
   },
 
@@ -57,7 +57,7 @@ export const useCommonStore = defineStore('common', {
       if (!panels.includes(this.panelSelected)) {
         this.setPanel(panels[0] || PANEL_ORGANIZATION)
       }
-      if (user.role !== 'operator') {
+      if (user.role !== 'admin' && user.role !== 'superadmin') {
         this.setPanel(PANEL_ORGANIZATION)
       }
       if ((user.organizations || []).length === 1) {
